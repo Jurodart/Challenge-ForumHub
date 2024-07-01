@@ -1,9 +1,6 @@
 package forumHub.api.controller;
 
 
-import forumHub.api.domain.topico.DadosAtualizaTopico;
-import forumHub.api.domain.topico.DadosDetalhamentoTopico;
-import forumHub.api.domain.topico.Topico;
 import forumHub.api.domain.usuario.*;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -11,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -24,10 +22,19 @@ public class UsuarioController {
 
     @PostMapping //método post na requisição
     @Transactional
-    public void criarUsuario(@RequestBody @Valid DadosCriaUsuario dadosCriaUsuario) {
+    public Usuario criarUsuario(@RequestBody @Valid DadosCriaUsuario dadosCriaUsuario) {
         //RequestBody permite pegar o corpo do json na requisição
 
-        usuarioRepository.save(new Usuario(dadosCriaUsuario));
+        var encripta = new BCryptPasswordEncoder();
+        var senhaEncriptada = encripta.encode(dadosCriaUsuario.senha());
+
+        var usuario = new Usuario();
+        usuario.setEmail(dadosCriaUsuario.email());
+        usuario.setNome(dadosCriaUsuario.nome());
+        usuario.setSenha(senhaEncriptada);
+
+        usuarioRepository.save(usuario);
+        return usuario;
     }
 
     @GetMapping
